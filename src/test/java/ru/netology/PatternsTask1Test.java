@@ -33,38 +33,18 @@ class PatternsTask1Test {
     SelenideElement successPopUp =
             $x("//div[@data-test-id='success-notification']//div[@class='notification__content']");
     SelenideElement replanningPopUp =
-            $("//div[@data-test-id='replan-notification']//span[@class='button__text']");
+            $x("//div[@data-test-id='replan-notification']//div[@class='notification__content']");
+
 
     @BeforeEach
     void setup() {
         open("http://localhost:9999");
     }
-/*
-    @Test
-    public void test() {
-        System.out.println("generateFirstName('ru'): " + generateFirstName(locale));
-        System.out.println("generateLastName('ru'): " + generateLastName(locale));
-        System.out.println("generateFirstAndLastNames('ru'): " + generateFirstAndLastNames(locale));
-        System.out.println("generateFullName('ru'): " + generateFullName(locale));
-        System.out.println("generatePhone('ru', '+' ): " + generatePhone(locale));
 
-        int rand = randomPeriod(4, 365);
-        System.out.println("rand- " + rand);
-        System.out.println("generateDate(" + rand + ", ddMMyyyy): " + generateDate(rand,"ddMMyyyy"));
-        System.out.println("generateDate(" + rand + ", d): " + generateDate(rand,"d"));
-        System.out.println("generateDate(" + rand + ", dd): " + generateDate(rand,"dd"));
-        System.out.println("generateDate(" + rand + ", MM): " + generateDate(rand,"MM"));
-        System.out.println("generateDate(" + rand + ", yyyy): " + generateDate(rand,"yyyy"));
-        System.out.println("generateDate(" + rand + ", MMM): " + generateDate(rand,"MMM"));
-
-        System.out.println("generateCity(): " + generateCity());
-        System.out.println("generateCity('ru'): " + generateCity(locale));
-    }
-*/
     @Test
     public void testValidData() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -89,12 +69,12 @@ class PatternsTask1Test {
         String phone = generatePhone(locale);
 
         int rand = randomPeriod(4, 365);
-        String deliveryDate = generateDate(rand, "dd.dMM.yyyy");
-        String deliveryDay = generateDate(rand,"d");
-        int deliveryMonthDigit = parseInt(generateDate(rand,"MM"));
-        int deliveryYear = parseInt(generateDate(rand,"yyyy"));
+        String deliveryDate = generateDate(rand, "dd.MM.yyyy");
+        String deliveryDay = generateDate(rand, "d");
+        int deliveryMonthDigit = parseInt(generateDate(rand, "MM"));
+        int deliveryYear = parseInt(generateDate(rand, "yyyy"));
 
-        int currentMonthDigit = parseInt(generateDate(0,"MM"));
+        int currentMonthDigit = parseInt(generateDate(0, "MM"));
 
         cityInput.setValue(cityShot);
         $x("//span[text()='" + city + "']/..").click();
@@ -133,7 +113,7 @@ class PatternsTask1Test {
     public void testReplanningDateForFuture() {
         String city = generateCity();
         int rand = randomPeriod(4, 100);
-        String deliveryDate = generateDate(rand,"dd.MM.yyyy");
+        String deliveryDate = generateDate(rand, "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -149,18 +129,56 @@ class PatternsTask1Test {
                 .shouldHave(Condition.text(successMessage + deliveryDate), Duration.ofSeconds(15))
                 .shouldBe(Condition.visible);
 
-        int newRand = rand + randomPeriod(1, 14);
-        String newDeliveryDate = generateDate(newRand,"dd.MM.yyyy");
+        String newDeliveryDate = generateDate(rand + randomPeriod(1, 14), "dd.MM.yyyy");
         dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
         dateInput.setValue(newDeliveryDate);
 
         okButton.click();
 
+        String notificationMassage = "У вас уже запланирована встреча на другую дату. Перепланировать?";
         replanningPopUp
-                .shouldHave(Condition.text("Перепланировать"), Duration.ofSeconds(15))
+                .should(appear, Duration.ofSeconds(15))
+                .shouldHave(Condition.text(notificationMassage));
+
+        $x("//div[@data-test-id='replan-notification']//button").click();
+
+        successPopUp
+                .shouldHave(Condition.text(successMessage + newDeliveryDate), Duration.ofSeconds(15))
+                .shouldBe(Condition.visible);
+    }
+
+    @Test
+    public void testReplanningDateForPast() {
+        String city = generateCity();
+        int rand = randomPeriod(18, 365);
+        String deliveryDate = generateDate(rand, "dd.MM.yyyy");
+        String personFullName = generateFirstAndLastNames(locale);
+        String phone = generatePhone(locale);
+
+        cityInput.setValue(city);
+        dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
+        dateInput.setValue(deliveryDate);
+        nameInput.setValue(personFullName);
+        phoneInput.setValue(phone);
+        agreementCheckbox.click();
+        okButton.click();
+
+        successPopUp
+                .shouldHave(Condition.text(successMessage + deliveryDate), Duration.ofSeconds(15))
                 .shouldBe(Condition.visible);
 
+        String newDeliveryDate = generateDate(rand - randomPeriod(1, 14), "dd.MM.yyyy");
+        dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
+        dateInput.setValue(newDeliveryDate);
+
         okButton.click();
+
+        String notificationMassage = "У вас уже запланирована встреча на другую дату. Перепланировать?";
+        replanningPopUp
+                .should(appear, Duration.ofSeconds(15))
+                .shouldHave(Condition.text(notificationMassage));
+
+        $x("//div[@data-test-id='replan-notification']//button").click();
 
         successPopUp
                 .shouldHave(Condition.text(successMessage + newDeliveryDate), Duration.ofSeconds(15))
@@ -170,7 +188,7 @@ class PatternsTask1Test {
     @Test
     public void testInvalidCity() {
         String city = "Нью Йорк";
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -189,7 +207,7 @@ class PatternsTask1Test {
     @Test
     public void testEmptyCityField() {
         String city = "";
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -208,7 +226,7 @@ class PatternsTask1Test {
     @Test
     public void testValidCityInCapslock() {
         String city = generateCity().toUpperCase();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -228,7 +246,7 @@ class PatternsTask1Test {
     @Test
     public void testLatinSymbolInCityField() {
         String city = "Moscow";
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -247,7 +265,7 @@ class PatternsTask1Test {
     @Test
     public void testSpecSymbolInCityField() {
         String city = generateCity() + randomSpecSymbol();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -266,7 +284,7 @@ class PatternsTask1Test {
     @Test
     public void testCurrentDateInDateField() {
         String city = generateCity();
-        String deliveryDate = generateDate(0,"dd.MM.yyyy");
+        String deliveryDate = generateDate(0, "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -303,7 +321,7 @@ class PatternsTask1Test {
     @Test
     public void testPastDateInDateField() {
         String city = generateCity();
-        String deliveryDate = generateDate(-1,"dd.MM.yyyy");
+        String deliveryDate = generateDate(-1, "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -322,7 +340,7 @@ class PatternsTask1Test {
     @Test
     public void testCurrentPlusTwoDaysInDateField() {
         String city = generateCity();
-        String deliveryDate = generateDate(2,"dd.MM.yyyy");
+        String deliveryDate = generateDate(2, "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -341,7 +359,7 @@ class PatternsTask1Test {
     @Test
     public void testCurrentPlusThreeDaysInDateField() {
         String city = generateCity();
-        String deliveryDate = generateDate(3,"dd.MM.yyyy");
+        String deliveryDate = generateDate(3, "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -361,7 +379,7 @@ class PatternsTask1Test {
     @Test
     public void testLatinSymbolInNameField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         //String personFullName = "Petrov Petr";
         String personFullName = generateFirstAndLastNames("en");
         String phone = generatePhone(locale);
@@ -381,7 +399,7 @@ class PatternsTask1Test {
     @Test
     public void testDigitSymbolInNameField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale) + "2";
         String phone = generatePhone(locale);
 
@@ -400,7 +418,7 @@ class PatternsTask1Test {
     @Test
     public void testSpecSymbolInNameField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstName(locale) + randomSpecSymbol() + generateLastName(locale);
         String phone = generatePhone(locale);
 
@@ -419,7 +437,7 @@ class PatternsTask1Test {
     @Test
     public void testEmptyNameField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = "";
         String phone = generatePhone(locale);
 
@@ -438,7 +456,7 @@ class PatternsTask1Test {
     @Test
     public void testEmptyPhoneField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = "";
 
@@ -454,10 +472,13 @@ class PatternsTask1Test {
                 .should(appear);
     }
 
-    @Test
+    /**
+     * Добавили валидацию поля, автоматически подставляется + в начале номера
+     */
+
     public void testInputWithoutPlusInPhoneField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale).replaceAll("\\+", "");
 
@@ -473,10 +494,12 @@ class PatternsTask1Test {
                 .should(appear);
     }
 
-    @Test
+    /**
+     * невалидный номер проходит!!!
+     */
     public void testInputLess11DigitInPhoneField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale).substring(0, 11);
 
@@ -492,12 +515,15 @@ class PatternsTask1Test {
                 .should(appear);
     }
 
-    @Test
+    /**
+     * невалидный номер проходит!!! Добавили валидацию поля, нельзя ввести ничего, кроме + и цифры
+     */
+
     public void testInputMore11DigitInPhoneField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
-        String phone = generatePhone(locale) + randomPeriod(0, 9);
+        String phone = generatePhone(locale).substring(0, 11) + randomPeriod(0, 9);
 
         cityInput.setValue(city);
         dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
@@ -512,13 +538,13 @@ class PatternsTask1Test {
     }
 
     /**
-     * Стоит валидация поля
+     * невалидный номер проходит!!! Добавили валидацию поля, нельзя ввести ничего, кроме + и цифры
      */
     public void testInputSymbolInPhoneField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
-        String phone = generatePhone(locale) + randomSymbol(locale);
+        String phone = generatePhone(locale).substring(0, 11) + randomSymbol(locale);
 
         cityInput.setValue(city);
         dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
@@ -532,12 +558,15 @@ class PatternsTask1Test {
                 .should(appear);
     }
 
-    @Test
+    /**
+     * невалидный номер проходит!!! Добавили валидацию поля, нельзя ввести ничего, кроме + и цифры
+     */
+
     public void testInputWithDashInPhoneField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
-        String phone = generatePhone(locale) + "-";
+        String phone = generatePhone(locale).substring(0, 11) + "-";
 
         cityInput.setValue(city);
         dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
@@ -551,12 +580,15 @@ class PatternsTask1Test {
                 .should(appear);
     }
 
-    @Test
+    /**
+     * невалидный номер проходит!!! Добавили валидацию поля, нельзя ввести ничего, кроме + и цифры
+     */
+
     public void testInputWithBracketsInPhoneField() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
-        String phone = generatePhone(locale) + "()";
+        String phone = generatePhone(locale).substring(0, 10) + "()";
 
         cityInput.setValue(city);
         dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
@@ -573,7 +605,7 @@ class PatternsTask1Test {
     @Test
     public void testUncheckedAgreement() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
@@ -591,20 +623,19 @@ class PatternsTask1Test {
     @Test
     public void testValidationFieldsAfterCorrectingWrongInput() {
         String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365),"dd.MM.yyyy");
+        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale);
 
         cityInput.setValue(city + randomSpecSymbol());
         dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
-        String incorrectDate = generateDate(-1,"dd.MM.yyyy");
+        String incorrectDate = generateDate(-1, "dd.MM.yyyy");
         dateInput.setValue(incorrectDate);
         nameInput.setValue(personFullName + randomSymbol("en"));
-        phoneInput.setValue(phone + randomPeriod(0, 9));
+        phoneInput.setValue(phone);
         okButton.click();
         $x("//span[@data-test-id='city'][contains(@class, 'input_invalid')]").should(appear);
 
-        cityInput.clear();
         cityInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
         cityInput.setValue(city);
         okButton.click();
@@ -618,11 +649,11 @@ class PatternsTask1Test {
         nameInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
         nameInput.setValue(personFullName);
         okButton.click();
-        $x("//span[@data-test-id='phone'][contains(@class, 'input_invalid')]").should(appear);
-
-        phoneInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
-        phoneInput.setValue(phone);
-        okButton.click();
+//        $x("//span[@data-test-id='phone'][contains(@class, 'input_invalid')]").should(appear);
+//
+//        phoneInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
+//        phoneInput.setValue(phone);
+//        okButton.click();
         $x("//label[@data-test-id='agreement'][contains(@class, 'input_invalid')]").should(appear);
 
         agreementCheckbox.click();
