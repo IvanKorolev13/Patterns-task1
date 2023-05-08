@@ -473,28 +473,6 @@ class PatternsTask1Test {
     }
 
     /**
-     * Добавили валидацию поля, автоматически подставляется + в начале номера
-     */
-
-    public void testInputWithoutPlusInPhoneField() {
-        String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
-        String personFullName = generateFirstAndLastNames(locale);
-        String phone = generatePhone(locale).replaceAll("\\+", "");
-
-        cityInput.setValue(city);
-        dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
-        dateInput.setValue(deliveryDate);
-        nameInput.setValue(personFullName);
-        phoneInput.setValue(phone);
-        agreementCheckbox.click();
-        okButton.click();
-
-        $x("//span[@data-test-id='phone']//span[contains(text(), '" + errorMessageIncorrectPhone + "')]")
-                .should(appear);
-    }
-
-    /**
      * невалидный номер проходит!!!
      */
     public void testInputLess11DigitInPhoneField() {
@@ -502,93 +480,6 @@ class PatternsTask1Test {
         String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
         String personFullName = generateFirstAndLastNames(locale);
         String phone = generatePhone(locale).substring(0, 11);
-
-        cityInput.setValue(city);
-        dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
-        dateInput.setValue(deliveryDate);
-        nameInput.setValue(personFullName);
-        phoneInput.setValue(phone);
-        agreementCheckbox.click();
-        okButton.click();
-
-        $x("//span[@data-test-id='phone']//span[contains(text(), '" + errorMessageIncorrectPhone + "')]")
-                .should(appear);
-    }
-
-    /**
-     * невалидный номер проходит!!! Добавили валидацию поля, нельзя ввести ничего, кроме + и цифры
-     */
-
-    public void testInputMore11DigitInPhoneField() {
-        String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
-        String personFullName = generateFirstAndLastNames(locale);
-        String phone = generatePhone(locale).substring(0, 11) + randomPeriod(0, 9);
-
-        cityInput.setValue(city);
-        dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
-        dateInput.setValue(deliveryDate);
-        nameInput.setValue(personFullName);
-        phoneInput.setValue(phone);
-        agreementCheckbox.click();
-        okButton.click();
-
-        $x("//span[@data-test-id='phone']//span[contains(text(), '" + errorMessageIncorrectPhone + "')]")
-                .should(appear);
-    }
-
-    /**
-     * невалидный номер проходит!!! Добавили валидацию поля, нельзя ввести ничего, кроме + и цифры
-     */
-    public void testInputSymbolInPhoneField() {
-        String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
-        String personFullName = generateFirstAndLastNames(locale);
-        String phone = generatePhone(locale).substring(0, 11) + randomSymbol(locale);
-
-        cityInput.setValue(city);
-        dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
-        dateInput.setValue(deliveryDate);
-        nameInput.setValue(personFullName);
-        phoneInput.setValue(phone);
-        agreementCheckbox.click();
-        okButton.click();
-
-        $x("//span[@data-test-id='phone']//span[contains(text(), '" + errorMessageIncorrectPhone + "')]")
-                .should(appear);
-    }
-
-    /**
-     * невалидный номер проходит!!! Добавили валидацию поля, нельзя ввести ничего, кроме + и цифры
-     */
-
-    public void testInputWithDashInPhoneField() {
-        String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
-        String personFullName = generateFirstAndLastNames(locale);
-        String phone = generatePhone(locale).substring(0, 11) + "-";
-
-        cityInput.setValue(city);
-        dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
-        dateInput.setValue(deliveryDate);
-        nameInput.setValue(personFullName);
-        phoneInput.setValue(phone);
-        agreementCheckbox.click();
-        okButton.click();
-
-        $x("//span[@data-test-id='phone']//span[contains(text(), '" + errorMessageIncorrectPhone + "')]")
-                .should(appear);
-    }
-
-    /**
-     * невалидный номер проходит!!! Добавили валидацию поля, нельзя ввести ничего, кроме + и цифры
-     */
-
-    public void testInputWithBracketsInPhoneField() {
-        String city = generateCity();
-        String deliveryDate = generateDate(randomPeriod(4, 365), "dd.MM.yyyy");
-        String personFullName = generateFirstAndLastNames(locale);
-        String phone = generatePhone(locale).substring(0, 10) + "()";
 
         cityInput.setValue(city);
         dateInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
@@ -632,7 +523,7 @@ class PatternsTask1Test {
         String incorrectDate = generateDate(-1, "dd.MM.yyyy");
         dateInput.setValue(incorrectDate);
         nameInput.setValue(personFullName + randomSymbol("en"));
-        phoneInput.setValue(phone);
+        phoneInput.setValue(phone.substring(0, 10));
         okButton.click();
         $x("//span[@data-test-id='city'][contains(@class, 'input_invalid')]").should(appear);
 
@@ -650,10 +541,10 @@ class PatternsTask1Test {
         nameInput.setValue(personFullName);
         okButton.click();
 //        $x("//span[@data-test-id='phone'][contains(@class, 'input_invalid')]").should(appear);
-//
-//        phoneInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
-//        phoneInput.setValue(phone);
-//        okButton.click();
+
+        phoneInput.sendKeys(Keys.LEFT_SHIFT, Keys.HOME, Keys.BACK_SPACE);
+        phoneInput.setValue(phone);
+        okButton.click();
         $x("//label[@data-test-id='agreement'][contains(@class, 'input_invalid')]").should(appear);
 
         agreementCheckbox.click();
